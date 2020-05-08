@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'quiz_brain.dart';
+import 'package:rflutter_alert/rflutter_alert.dart';
+
+QuizBrain quizBrain = QuizBrain();
 
 void main() => runApp(Quizzler());
 
@@ -25,6 +29,38 @@ class QuizPage extends StatefulWidget {
 }
 
 class _QuizPageState extends State<QuizPage> {
+  List<Widget> scoreKeeper = [];
+  // List<String> questions =[
+  //   'You can lead a cow down stairs but not up stairs.',
+  //   'Approximately one quarter of human bones are in the feet.',
+  //   'A slug\'s blood is green.'
+  // ];
+  // List<bool> answers = [false, true, true];
+
+  void checkAnswer(bool userAnswer){
+    bool correctAnswer = quizBrain.getQuestionAnswer();
+
+                if(correctAnswer == userAnswer){
+                  scoreKeeper.add(Icon(Icons.check, color: Colors.green,));
+                }else{
+                  scoreKeeper.add(Icon(Icons.close, color: Colors.red,));
+                }
+                if(quizBrain.isFinished()){
+                  showAlert();
+                  setState(() {
+                    
+                  quizBrain.reset();
+                  scoreKeeper.clear();
+                  });
+                }else{
+                setState(() {
+                  quizBrain.nextQuestion();
+                });
+                }
+  }
+
+  
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -37,7 +73,7 @@ class _QuizPageState extends State<QuizPage> {
             padding: EdgeInsets.all(10.0),
             child: Center(
               child: Text(
-                'This is where the question text will go.',
+                quizBrain.getQuestionText(),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 25.0,
@@ -62,6 +98,7 @@ class _QuizPageState extends State<QuizPage> {
               ),
               onPressed: () {
                 //The user picked true.
+                checkAnswer(true);
               },
             ),
           ),
@@ -80,13 +117,50 @@ class _QuizPageState extends State<QuizPage> {
               ),
               onPressed: () {
                 //The user picked false.
+                checkAnswer(false);
               },
             ),
           ),
         ),
-        //TODO: Add a Row here as your score keeper
+        Row(
+          children: scoreKeeper,
+        ),
       ],
     );
+  }
+
+  void showAlert() {
+    var alertStyle = AlertStyle(
+      animationType: AnimationType.grow,
+      isCloseButton: true,
+      isOverlayTapDismiss: false,
+      descStyle: TextStyle(fontWeight: FontWeight.bold),
+      animationDuration: Duration(milliseconds: 600),
+      alertBorder: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10.0),
+        side: BorderSide.none
+      ),
+      titleStyle: TextStyle(
+        color: Colors.purple,
+      ),
+    );
+    Alert(
+      style: alertStyle,
+      context: context,
+      type: AlertType.none,
+      title: "Congratulations!",
+      desc: "You finished the quiz",
+      buttons: [
+        DialogButton(
+          child: Text(
+            "Restart",
+            style: TextStyle(color: Colors.white, fontSize: 20),
+          ),
+          onPressed: () => Navigator.pop(context),
+          width: 120,
+        )
+      ],
+    ).show();
   }
 }
 
